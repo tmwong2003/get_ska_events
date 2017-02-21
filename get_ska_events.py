@@ -1,20 +1,19 @@
 #!/usr/bin/env python
+
 from __future__ import print_function
 import httplib2
 import os
+
+import argparse
+import datetime
+import dateutil.parser
 
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-import argparse
-import datetime
-import dateutil.parser
-
 _CALENDAR_ID = '054fnj32ov0fit62sam8ss7pcg@group.calendar.google.com'
-
-flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/calendar-python-quickstart.json
@@ -23,7 +22,7 @@ CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Calendar API Python Quickstart'
 
 
-def get_credentials():
+def get_credentials(flags):
     """Gets valid user credentials from storage.
 
     If nothing has been stored, or if the stored credentials are invalid,
@@ -36,8 +35,7 @@ def get_credentials():
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'calendar-python-quickstart.json')
+    credential_path = os.path.join(credential_dir, 'calendar-python-quickstart.json')
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -50,18 +48,42 @@ def get_credentials():
 
 
 def main():
-    """Shows basic usage of the Google Calendar API.
-
-    Creates a Google Calendar API service object and outputs a list of the next
-    10 events on the user's calendar.
+    """Get events from the NorCal SKA calendar.
     """
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
+
+    parser = argparse.ArgumentParser(
+        parents=[tools.argparser],
+        description='''
+Get events from the NorCal SKA calendar in the week following from
+now.
+'''
+    )
+    parser.add_argument(
+        '--next-month',
+        '-n',
+        action='store_true',
+        help='Show events in the month after the current month',
+        dest='next_month'
+    )
+    args = parser.parse_args()
+
+    credentials = get_credentials(args)
+    http = credentials.authorize(httplib2.Http(".cache", disable_ssl_certificate_validation=True))
     service = discovery.build('calendar', 'v3', http=http)
 
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    now = datetime.datetime.utcnow()
+    then = now + datetime.timedelta(weeks=1)
+    if args.next_month:
+        month = ((now.month % 12) + 1)
+        year = now.year + (1 if month == 1 else 0)
+        now = datetime.datetime(year=year, month=month, day=1)
+        then = now + datetime.timedelta(days=31)
+
     eventsResult = service.events().list(
-        calendarId=_CALENDAR_ID, timeMin=now, maxResults=10, singleEvents=True,
+        calendarId=_CALENDAR_ID,
+        timeMin=now.isoformat() + 'Z',  # 'Z' indicates UTC time
+        timeMax=then.isoformat() + 'Z',
+        singleEvents=True,
         orderBy='startTime'
     ).execute()
     events = eventsResult.get('items', [])
@@ -76,7 +98,6 @@ def main():
         print(start.strftime('%I:%M%p'), '-', end.strftime('%I:%M%p'))
         print(event['location'])
         print('')
-
 
 if __name__ == '__main__':
     main()
