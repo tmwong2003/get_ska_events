@@ -99,5 +99,9 @@ now.
         print(event['location'])
         print('')
 
+    print('''Regards,
+
+Theodore Wong <tmw@tmwong.org>''')
+
 if __name__ == '__main__':
     main()
