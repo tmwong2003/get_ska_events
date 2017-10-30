@@ -96,7 +96,8 @@ now.
         print(event['summary'])
         print(start.strftime('%a %b %d, %Y'))
         print(start.strftime('%I:%M%p'), '-', end.strftime('%I:%M%p'))
-        print(event['location'])
+        if 'location' in event:
+            print(event['location'])
         print('')
 
     print('''Regards,
