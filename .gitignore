@@ -1,3 +1,4 @@
 .cache/
 .project
 .pydevproject
+.python-version

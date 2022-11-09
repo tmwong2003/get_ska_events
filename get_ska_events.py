@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 import httplib2
 import os
 
@@ -68,7 +67,7 @@ now.
     args = parser.parse_args()
 
     credentials = get_credentials(args)
-    http = credentials.authorize(httplib2.Http(".cache", disable_ssl_certificate_validation=True))
+    http = credentials.authorize(httplib2.Http(".cache", disable_ssl_certificate_validation=False))
     service = discovery.build('calendar', 'v3', http=http)
 
     now = datetime.datetime.utcnow()
