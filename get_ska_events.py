@@ -61,6 +61,13 @@ now.
         help="Show events in the month after the current month",
         dest="next_month",
     )
+    parser.add_argument(
+        "--this-month",
+        "-t",
+        action="store_true",
+        help="Show events in the month after the current month",
+        dest="this_month",
+    )
     args = parser.parse_args()
 
     credentials = get_credentials(args)
@@ -73,6 +80,9 @@ now.
         month = (now.month % 12) + 1
         year = now.year + (1 if month == 1 else 0)
         now = datetime.datetime(year=year, month=month, day=1)
+        then = now + datetime.timedelta(days=31)
+    elif args.this_month:
+        now = datetime.datetime(year=now.year, month=now.month, day=1)
         then = now + datetime.timedelta(days=31)
 
     eventsResult = (
