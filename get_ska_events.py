@@ -108,12 +108,15 @@ now.
         print(start.strftime("%I:%M%p"), "-", end.strftime("%I:%M%p"))
         if "location" in event:
             print(event["location"])
+        if "description" in event:
+            print(event["description"])
         print("")
 
     print(
         """Regards,
 
-Theodore Wong <tmw@tmwong.org>"""
+Theodore Wong <tmw@tmwong.org>
+El Camino SKA Dojo"""
     )
 
 
