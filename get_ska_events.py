@@ -77,7 +77,7 @@ now.
     now = datetime.datetime.utcnow()
     then = now + datetime.timedelta(weeks=1)
     if args.next_month:
-        month = (now.month % 12) + 1
+        month = (now.month + 1) % 12
         year = now.year + (1 if month == 1 else 0)
         now = datetime.datetime(year=year, month=month, day=1)
         then = now + datetime.timedelta(days=31)
