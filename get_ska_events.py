@@ -74,7 +74,7 @@ now.
     http = credentials.authorize(httplib2.Http(".cache", disable_ssl_certificate_validation=False))
     service = discovery.build("calendar", "v3", http=http)
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     then = now + datetime.timedelta(weeks=1)
     if args.next_month:
         month = (now.month + 1) % 12
@@ -89,8 +89,8 @@ now.
         service.events()
         .list(
             calendarId=_CALENDAR_ID,
-            timeMin=now.isoformat() + "Z",  # 'Z' indicates UTC time
-            timeMax=then.isoformat() + "Z",
+            timeMin=now.isoformat(),
+            timeMax=then.isoformat(),
             singleEvents=True,
             orderBy="startTime",
         )
