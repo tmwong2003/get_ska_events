@@ -1,6 +1,0 @@
-black
-isort
-
-google-api-python-client>=1.6.1
-oauth2client
-python-dateutil

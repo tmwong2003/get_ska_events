@@ -1,5 +1,12 @@
-.cache/
-.vscode/
+# Ecliose
 .project
 .pydevproject
+
+# uv
 .python-version
+
+# Vistual Studio Code
+.vscode/
+
+# Project-specific
+.cache/
