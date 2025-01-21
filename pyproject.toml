@@ -1,8 +1,7 @@
 [project]
 name = "get-ska-events"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Retrieves events from the NorCal Google calendar"
 requires-python = ">=3.13.1"
 dependencies = [
     "google-api-python-client>=2.159.0",
@@ -12,7 +11,6 @@ dependencies = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "I"]
 
 # Same as Black.
 indent-width = 4
@@ -30,3 +28,6 @@ quote-style = "double"
 
 # Like Black, respect magic trailing commas.
 skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
