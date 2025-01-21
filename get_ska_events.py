@@ -79,10 +79,10 @@ now.
     if args.next_month:
         month = (now.month + 1) % 12
         year = now.year + (1 if month == 1 else 0)
-        now = datetime.datetime(year=year, month=month, day=1)
+        now = datetime.datetime(year=year, month=month, day=1, tzinfo=datetime.timezone.utc)
         then = now + datetime.timedelta(days=31)
     elif args.this_month:
-        now = datetime.datetime(year=now.year, month=now.month, day=1)
+        now = datetime.datetime(year=now.year, month=now.month, day=1, tzinfo=datetime.timezone.utc)
         then = now + datetime.timedelta(days=31)
 
     eventsResult = (
