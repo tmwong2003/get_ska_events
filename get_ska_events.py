@@ -44,11 +44,24 @@ def get_credentials(flags):
     return credentials
 
 
+def unwrap[T](wrapped: T | None) -> T:
+    """
+    Unwraps a value that may be None, raising an exception if it is None.
+
+    :param wrapped: The value to unwrap.
+    :return: The unwrapped value.
+    :raises ValueError: If the wrapped value is None.
+    """
+    if wrapped is None:
+        raise ValueError("Value cannot be None")
+    return wrapped
+
+
 def main():
     """Get events from the NorCal SKA calendar."""
 
     parser = argparse.ArgumentParser(
-        parents=[tools.argparser],
+        parents=[unwrap(tools.argparser)],
         description="""
 Get events from the NorCal SKA calendar in the week following from
 now.
