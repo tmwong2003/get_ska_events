@@ -10,3 +10,4 @@
 
 # Project-specific
 .cache/
+.client_secret.json
