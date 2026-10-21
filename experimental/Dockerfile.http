@@ -1,0 +1,5 @@
+FROM node:22-bookworm
+WORKDIR /app
+COPY Training.js ./
+COPY experimental/scripts/test-training-http-cloud.mjs ./experimental/scripts/
+CMD ["node", "experimental/scripts/test-training-http-cloud.mjs"]

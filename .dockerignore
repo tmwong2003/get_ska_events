@@ -1,0 +1,12 @@
+# Diagnostic builds use the repository root as their build context.
+**
+!experimental/
+!experimental/Dockerfile
+!package.json
+!package-lock.json
+!experimental/scripts/
+!experimental/scripts/**
+!Training.js
+!experimental/Dockerfile.http
+!experimental/TransportProbe.js
+!experimental/Dockerfile.probe

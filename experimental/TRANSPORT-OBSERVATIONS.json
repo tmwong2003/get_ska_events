@@ -1,0 +1,370 @@
+[
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "default",
+      "client": "apps-script",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "2c95787c1c47b9488ed98d2e5fc652deba4fcbc740e44709578a22f8a63ccec8"
+        ],
+        "x-forwarded-for": [
+          "75f4d541e3d9df7013b7ad32931dba3ee16bbbfad2741161ee2c9a7402997ffd",
+          "21274c61c7d4041bf80cb6d2531ad0b62eb7b3c5e73ecbabafa6da18f058eded"
+        ]
+      },
+      "headerNames": [
+        "accept-encoding",
+        "cookie",
+        "forwarded",
+        "host",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept-encoding": "gzip, deflate, br",
+        "user-agent": "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd9mk3Dmiof6Yo5YciGjjSkzKrS9DIw)"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "browser",
+      "client": "apps-script",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "b217908d57498c924c17d90a0e8e2fdc044a85ba5048225e6240a3fa1f5f2a6e"
+        ],
+        "x-forwarded-for": [
+          "75f4d541e3d9df7013b7ad32931dba3ee16bbbfad2741161ee2c9a7402997ffd",
+          "054dff0b9de7cf0eed7c500b29ff86a4eb2cb8287a6d98a0df5414dc9580be30"
+        ]
+      },
+      "headerNames": [
+        "accept-encoding",
+        "cookie",
+        "forwarded",
+        "host",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept-encoding": "gzip, deflate, br",
+        "user-agent": "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd9mk3Dmiof6Yo5YciGjjSkzKrS9DIw)"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "browser-exact",
+      "client": "apps-script",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "2d32946449162411e3b275be81024f8a303bb32ee6d39a9d9f861726ce9f4c83"
+        ],
+        "x-forwarded-for": [
+          "75f4d541e3d9df7013b7ad32931dba3ee16bbbfad2741161ee2c9a7402997ffd",
+          "1b8856c689b4a2a447cc9b3c30c708ba4f22aeb754028aa2b05076c9ba486077"
+        ]
+      },
+      "headerNames": [
+        "accept-encoding",
+        "cookie",
+        "forwarded",
+        "host",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept-encoding": "gzip, deflate, br",
+        "user-agent": "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd9mk3Dmiof6Yo5YciGjjSkzKrS9DIw)"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 52,
+      "bodyMatchesExpected": true,
+      "bodySha256": "1cc9e8cb31f13205899026a49ab7ac6e36313045902e1cd940b3f952c5d43e27",
+      "case": "form",
+      "client": "apps-script",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "ee1fb5c3ef762329a18ad21c04e0663292a25361f2aa7019081869cf678bc09d"
+        ],
+        "x-forwarded-for": [
+          "75f4d541e3d9df7013b7ad32931dba3ee16bbbfad2741161ee2c9a7402997ffd",
+          "914be30d26218162084d960d37b364cf1bcb7c860c22bfc87a0db58bb2d87715"
+        ]
+      },
+      "headerNames": [
+        "accept-encoding",
+        "content-length",
+        "content-type",
+        "cookie",
+        "forwarded",
+        "host",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept-encoding": "gzip, deflate, br",
+        "content-length": "52",
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd9mk3Dmiof6Yo5YciGjjSkzKrS9DIw)"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "POST",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "default",
+      "client": "cloud-run-node",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "3ec0d18d007f370e588dcf762f4c2a36009fd666cdcf8723a0be37a77b91fd33"
+        ],
+        "x-forwarded-for": [
+          "e3d10c074f5f3c2f7ea4f290d7eb47244366025a80f9562205dcea57c6d3cc8c"
+        ]
+      },
+      "headerNames": [
+        "accept",
+        "accept-encoding",
+        "accept-language",
+        "cookie",
+        "forwarded",
+        "host",
+        "sec-fetch-mode",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "br, gzip, deflate",
+        "accept-language": "*",
+        "user-agent": "node"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "browser",
+      "client": "cloud-run-node",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "3ec0d18d007f370e588dcf762f4c2a36009fd666cdcf8723a0be37a77b91fd33"
+        ],
+        "x-forwarded-for": [
+          "e3d10c074f5f3c2f7ea4f290d7eb47244366025a80f9562205dcea57c6d3cc8c"
+        ]
+      },
+      "headerNames": [
+        "accept",
+        "accept-encoding",
+        "accept-language",
+        "cookie",
+        "forwarded",
+        "host",
+        "sec-fetch-mode",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "br, gzip, deflate",
+        "accept-language": "*",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 0,
+      "bodyMatchesExpected": true,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "case": "browser-exact",
+      "client": "cloud-run-node",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "3ec0d18d007f370e588dcf762f4c2a36009fd666cdcf8723a0be37a77b91fd33"
+        ],
+        "x-forwarded-for": [
+          "e3d10c074f5f3c2f7ea4f290d7eb47244366025a80f9562205dcea57c6d3cc8c"
+        ]
+      },
+      "headerNames": [
+        "accept",
+        "accept-encoding",
+        "accept-language",
+        "cookie",
+        "forwarded",
+        "host",
+        "sec-fetch-mode",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "br, gzip, deflate",
+        "accept-language": "*",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "GET",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  },
+  {
+    "jsonPayload": {
+      "authorizationPresent": false,
+      "bodyBytes": 52,
+      "bodyMatchesExpected": true,
+      "bodySha256": "1cc9e8cb31f13205899026a49ab7ac6e36313045902e1cd940b3f952c5d43e27",
+      "case": "form",
+      "client": "cloud-run-node",
+      "cookieMatchesExpected": true,
+      "cookiePresent": true,
+      "decodedQueryMatchesExpected": true,
+      "event": "transport_observation",
+      "forwardingFingerprints": {
+        "forwarded": [
+          "3ec0d18d007f370e588dcf762f4c2a36009fd666cdcf8723a0be37a77b91fd33"
+        ],
+        "x-forwarded-for": [
+          "e3d10c074f5f3c2f7ea4f290d7eb47244366025a80f9562205dcea57c6d3cc8c"
+        ]
+      },
+      "headerNames": [
+        "accept",
+        "accept-encoding",
+        "accept-language",
+        "content-length",
+        "content-type",
+        "cookie",
+        "forwarded",
+        "host",
+        "sec-fetch-mode",
+        "traceparent",
+        "user-agent",
+        "x-cloud-trace-context",
+        "x-diagnostic-client",
+        "x-forwarded-for",
+        "x-forwarded-proto"
+      ],
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "br, gzip, deflate",
+        "accept-language": "*",
+        "content-length": "52",
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+      },
+      "httpVersionAtContainer": "1.1",
+      "method": "POST",
+      "proxyPeerFingerprint": "a0cb5134556f9b5348f1541f51c1346fef2027877490ae472a2092b5382c0f1e",
+      "queryBytesMatchExpected": true
+    }
+  }
+]

@@ -1,0 +1,16 @@
+# Diagnostic builds use the repository root as their build context.
+**
+!experimental/
+!experimental/Dockerfile
+!.dockerignore
+!.gcloudignore
+!package.json
+!package-lock.json
+!experimental/scripts/
+!experimental/scripts/**
+!Training.js
+!experimental/Dockerfile.http
+!experimental/cloudbuild-http.yaml
+!experimental/TransportProbe.js
+!experimental/Dockerfile.probe
+!experimental/cloudbuild-probe.yaml
