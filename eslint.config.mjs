@@ -18,6 +18,14 @@ export default [
     },
   },
   {
+    files: ["experiments/**/*.mjs", "apps/**/*.mjs"],
+    languageOptions: {
+      sourceType: "module",
+      globals: { document: "readonly", process: "readonly" },
+    },
+    rules: js.configs.recommended.rules,
+  },
+  {
     files: ["eslint.config.mjs"],
     languageOptions: {
       sourceType: "module",
