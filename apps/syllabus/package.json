@@ -1,0 +1,20 @@
+{
+  "name": "ska-syllabus",
+  "main": "function.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "functions-framework --target=syllabus",
+    "cli": "node cli.mjs",
+    "test": "node --test *.test.mjs"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^5.0.5",
+    "cheerio": "^1.2.0",
+    "fetch-cookie": "^3.2.0",
+    "google-auth-library": "^11.3.1"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "private": true
+}

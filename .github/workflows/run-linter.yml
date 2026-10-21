@@ -1,4 +1,6 @@
-name: "Run lint on Squad Health Check code"
+# Keywords ordered by appearance in the GitHub Actions syntax documentation:
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+name: "Run NorCal SKA Events linter"
 
 on:
   pull_request:
@@ -6,16 +8,12 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   run-linter:
     name: "Run linter"
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-
-      - name: "Run linter"
-        run: |
-          npm install
-          make lint
+    uses: ./.github/workflows/run-check.yml
+    with:
+      target: lint

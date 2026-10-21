@@ -1,5 +1,7 @@
 import js from "@eslint/js"
 
+// Order properties as they appear in ESLint's configuration object reference:
+// https://eslint.org/docs/latest/use/configure/configuration-files#configuration-objects
 export default [
   {
     ignores: ["node_modules/**"],
@@ -16,6 +18,14 @@ export default [
       "no-undef": "off",
       "no-unused-vars": ["error", { args: "none", vars: "local" }],
     },
+  },
+  {
+    files: ["experimental/**/*.mjs", "apps/**/*.mjs", "tests/**/*.mjs"],
+    languageOptions: {
+      sourceType: "module",
+      globals: { document: "readonly", process: "readonly" },
+    },
+    rules: js.configs.recommended.rules,
   },
   {
     files: ["eslint.config.mjs"],
