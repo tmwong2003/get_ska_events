@@ -1,13 +1,48 @@
-# Ecliose
+#
+# clasp / Google Apps Script
+#
+
+.clasp.json
+
+#
+# Eclipse
+#
 .project
 .pydevproject
+
+#
+# Node.js
+#
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+.eslintcache
+.stylelintcache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+lerna-debug.log*
+
+#
+# Python
+#
 
 # uv
 .python-version
 
-# Vistual Studio Code
+#
+# Visual Studio Code
+#
 .vscode/
 
+#
 # Project-specific
+#
 .cache/
-.client_secret.json
