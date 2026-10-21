@@ -1,13 +1,15 @@
-Get NorCal SKA Events developer notes
-==================================
+Get NorCal SKA Events
+=====================
+
+A Google Apps Script application for creating weekly and monthly event e-mail messages from the NorCal SKA event calendar and the SKA monthly training syllabus.
 
 ## Google Apps Script synchronization
 
 To develop and test Get NorCal SKA Events, create a new standalone Google Apps Script project. We assume that you have [enabled the Google Apps Script API](https://developers.google.com/apps-script/api/quickstart/js#enable-api) in your workspace and [installed `Node.js` and `npm`](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
-- Install project dependencies, including the Apps Script `clasp` CLI, Prettier, and ESLint: `make env`
-- Log in to the Apps Script API: `make login`
-- Create a new standalone Apps Script project: `make project`. The new project name is "Get NorCal SKA Events" by default; set the `PROJECT_NAME` environment variable to override the default. This command creates the project metadata file `.clasp.json` in the repository and links the local files to the new Apps Script project.
+- Install locked root and syllabus app dependencies, including the Apps Script `clasp` CLI, Prettier, and ESLint: `make env`. Use Node.js 22 to match the Cloud Run runtime.
+- Log in to the Apps Script API: `make clasp-login`
+- Create a new standalone Apps Script project: `make clasp-project`. The new project name is "Get NorCal SKA Events" by default; set the `PROJECT_NAME` environment variable to override the default. This command creates the project metadata file `.clasp.json` in the repository and links the local files to the new Apps Script project.
 
 After running these steps, you should have:
 
@@ -15,20 +17,48 @@ After running these steps, you should have:
 
 ### `appsscript.json`
 
-`appsscript.json` defines the OAuth scopes required by the Get NorCal SKA Events script to execute. Unfortunately, `make project` (via `clasp create`) will overwrite the existing `appsscript.json` file in the local repository, so run `git checkout appsscript.json` to restore the correct scope definitions.
+`appsscript.json` defines the OAuth scopes required by the Get NorCal SKA Events script to execute. Unfortunately, `make clasp-project` (via `clasp create`) will overwrite the existing `appsscript.json` file in the local repository, so run `git checkout appsscript.json` to restore the correct scope definitions.
 
 ## Development `make` targets
+
+The root `.nvmrc` selects Node.js 22. If you use nvm, run `nvm install` and
+`nvm use` from the repository root before running `make env`. Other version
+managers should select Node.js 22 as well.
 
 Code sanity targets:
 
 - `format`: Format project files with Prettier
 - `lint`: Run ESLint on the project JavaScript files
 
-Google Apps Script project management targets:
+Google Apps Script project setup and synchronization targets:
 
-- `login`: Log in to the Apps Script API
-- `push`: Push local changes to Apps Script files (including `*.js` and `appsscript.json`) to the remote project
-- `pull`: Pull remote changes made in the Apps Script console into the local repository
+- `clasp-login`: Log in to the Apps Script API
+- `clasp-project`: Create and link a new standalone Apps Script project
+- `clasp-test`: Run the Apps Script unit tests locally with Node
+- `clasp-push`: Push local changes to Apps Script files (including `*.js` and `appsscript.json`) to the remote project
+- `clasp-pull`: Pull remote changes made in the Apps Script console into the local repository
+
+Cloud Run setup, testing, and deployment targets:
+
+- `cloudrun-init`: Provision the syllabus app's Google Cloud resources
+- `cloudrun-test`: Run the syllabus app's local tests without accessing Google Cloud
+- `cloudrun-deploy`: Test and deploy the syllabus HTTP function
+
+The two workflows are separate: `clasp-push` does not deploy the Cloud Run
+function, and `cloudrun-deploy` does not upload Apps Script files.
+
+## Apps Script tests
+
+Run `make clasp-test` to execute `runTests()` from `Test.js` locally with Node.
+The harness loads the original Apps Script sources in a shared VM context,
+fixes the local and calendar timezones to `America/Los_Angeles`, and substitutes
+`CalendarApp`, `Logger`, and the three `Utilities.formatDate` formats used by
+the tests. Unsupported date formats fail explicitly.
+
+Logged test failures and exceptions cause a nonzero exit status. No Google
+login or calendar access is required. These are local unit tests, not a full
+Apps Script runtime emulator; run `runTests` in the Apps Script editor to
+check real service access and Google's date formatting.
 
 ## Formatting
 
@@ -47,167 +77,28 @@ Run `make env` to install the local ESLint development dependency.
 Use `make lint` or `npm run lint` to check JavaScript files without modifying them.
 In VS Code, install the recommended ESLint extension (`dbaeumer.vscode-eslint`).
 
-## Monthly training syllabus (local Playwright)
-
-Install dependencies with `npm install`, then install the browser with
-`npx playwright install chromium`. Run from an interactive terminal:
-
-```sh
-node experiments/scripts/get-training.mjs --month 12 --year 2026
-```
-
-A browser opens. When prompted, log in normally, follow **SKA News → Training
-Calendar** in the same tab, and press Enter in the terminal. The script selects
-both month and year and prints JSON containing the KATA, KIHON, and KUMITE rows
-for junior and senior training. Paragraph breaks are preserved as newlines.
-To save the JSON, append `> .cache/training-dec-2026.json` to the command;
-prompts are written to stderr.
-
-Authentication state is saved in `.cache/training/session.json`, which is
-ignored by Git. Treat that file as a credential. Later runs reuse it and prompt
-for login again if the calendar is inaccessible. Delete the file to force a
-fresh login. The browser still opens visibly on cached runs. This script runs
-locally in Node.js and does not replace the existing Apps Script functions.
-
-### Automatic login
-
-Set both `SKA_USERNAME` and `SKA_PASSWORD` to let the script fill the login
-form and follow SKA News → Training Calendar automatically when the session
-expires. With neither variable set, the interactive workflow remains available.
-Setting just one variable is an error.
-
-For a fresh, unattended login test, enter credentials using these zsh prompts
-(the password is hidden and is not included in shell history):
-
-```zsh
-read "SKA_USERNAME?SKA email: "
-read -rs "SKA_PASSWORD?SKA password: "
-printf '\n'
-export SKA_USERNAME SKA_PASSWORD
-node experiments/scripts/get-training.mjs --month 12 --year 2026 --fresh-login --headless
-unset SKA_USERNAME SKA_PASSWORD
-```
-
-`--fresh-login` ignores the cached state for that run, and replaces it after
-successful extraction. `--headless` runs without a browser window and fails
-instead of prompting when credentials are missing and login is required.
-Omit `--headless` to watch the automatic login while troubleshooting. Passwords
-and authentication URLs are not printed by the script. Cloud deployment can
-supply these same environment variables from Secret Manager.
-
-### Redacted authentication trace
-
-With credentials exported, run:
-
-```sh
-node experiments/scripts/get-training.mjs --month 12 --year 2026 --fresh-login --headless --trace-auth > .cache/syllabus.json 2> .cache/auth-trace.log
-```
-
-The trace records document navigation on the two SKA hosts, with request IDs,
-redirect relationships, status codes, query parameter names, sent cookie names,
-and issued cookie names/domain/path/flags. Query values, cookie values, bodies,
-and arbitrary headers are omitted. Unknown URL paths and hosts are masked.
-This is a navigation trace, not a full network capture; it excludes subresources
-and fetch/XHR requests. A nonzero `loggingFailures` count means it is incomplete.
-
-The `experiments/Dockerfile` packages the same command as a Cloud Run Job (no public endpoint
-is needed). Configure one task, zero retries, a five-minute task timeout, and
-start with 1 CPU and 2 GiB memory. Map Secret Manager secrets to `SKA_USERNAME`
-and `SKA_PASSWORD` using a job service account with accessor permission on those
-specific secrets. Do not include credentials in build arguments or the image.
-The default command traces December 2026; override job arguments for other months.
-Execute the job and filter Cloud Logging for its execution and `auth_request`,
-`auth_response`, and `auth_trace_complete` events. Application stderr contains
-the redacted JSON trace; stdout contains the extracted syllabus. The container
-build and Cloud execution still require verification in the chosen project.
-
-## HTTP-only Apps Script experiment
-
-`Training.js` now implements `getTrainingCalendar(year, month)` with UrlFetchApp.
-It begins with fresh in-memory cookie state, visits the news calendar and login
-page, preserves hidden login inputs, submits form-encoded credentials, follows
-the exact SKA News handoff URL, and requests the selected calendar month. Cookies
-are retained by domain/path, including replacements and expiration. Redirects
-are restricted to HTTPS on secure.ska.org and news.ska.org. It extracts only the
-three-column training syllabus; paragraph breaks are retained.
-
-Credentials are read from `ska-username` and `ska-password` in Secret Manager
-in `get-ska-events`, using `ScriptApp.getOAuthToken()`. The manifest includes
-`script.external_request` and `cloud-platform` scopes alongside the existing
-mail/calendar scopes. The executing user (and ultimately the clock trigger's
-creator) must have secret-access IAM permissions; the current project owner
-already has access. No service-account keys or passwords go into source code.
-
-To test:
-
-1. Enable **Google Apps Script API** in https://script.google.com/home/usersettings
-   if clasp reports that the user setting is disabled.
-2. Run `npx clasp push --force` to upload the updated source and manifest.
-3. Open the linked project in the Apps Script editor. Its standard Cloud project
-   should be `get-ska-events` (number `558742426345`); verify in Project Settings.
-4. Select `testTrainingHttp` and click **Run**. Complete Google's authorization
-   prompt for the additional scopes. This function extracts December 2026,
-   logs the syllabus JSON, and returns it; it sends no email and creates no trigger.
-5. Inspect the execution log's `training_http` entries and final result. These
-   logs contain status codes, hosts, methods, and cookie names/scopes only.
-   Do not add raw headers, response bodies, or authentication URLs to the log.
-
-The tests in `experiments/scripts/training-http.test.mjs` exercise the same Apps Script source
-in a Node VM with simulated Google services. Run `node --test experiments/scripts/*.test.mjs`.
-Those tests check parser behavior, separate host sessions, encoded credentials,
-hidden form values, redirects, cookie paths/deletion, and secret redaction. They
-are not proof that real UrlFetchApp traffic is accepted by the authentication
-provider; the editor run is the decisive live experiment.
-
-## Credential-free transport probe
-
-The archived `experiments/TransportProbe.js` is excluded from normal `clasp push`.
-To repeat this experiment, copy it into the Apps Script editor and select
-`testTransportRequests` to send four synthetic
-requests to the temporary Cloud Run `ska-transport-probe` service. It does not
-retrieve SKA credentials, use real session cookies, or send mail. Cases cover a
-default GET, requested browser User-Agent, disabled URL escaping, and a form POST.
-The matching Cloud Run client uses `experiments/scripts/run-transport-comparison.mjs`.
-
-The endpoint records allowlisted header values, header names, exact synthetic
-cookie/query/body comparisons, and fingerprints of forwarding metadata. It
-omits authorization/cookie values and request bodies from its application logs.
-Its public service and client job use a dedicated account without secret grants.
-See `experiments/TRANSPORT-COMPARISON.md` for measured results and source qualifications,
-`experiments/TRANSPORT-OBSERVATIONS.json` for the export, and
-`experiments/TRACE-RESOURCE-INVENTORY.md` for all cleanup candidates.
-
-For the next header comparison, run `testTrainingHttpNodeHeaders`. It verifies
-three synthetic headers at the probe, then automatically attempts the SKA login
-and December extraction if verification passes. Inspect the
-`training_header_verification` entry and final result/error. It sends no email.
-
-For the imported-session diagnostic, first execute the Cloud Run HTTP job with
-`EXPORT_NEWS_SESSION=true` and `APPS_SCRIPT_USER_AGENT` set to the observed Apps
-Script value. After it logs `diagnostic_session_saved`, run
-`testTrainingImportedSession` in Apps Script within 15 minutes. This makes one
-calendar request using the exported news cookie, without logging in or following
-redirects. The cookie is stored only in the temporary Secret Manager secret
-`ska-diagnostic-news-session`; remove that secret after testing.
-
 ## Standalone syllabus app
 
-The small standalone Node implementation lives in [`apps/syllabus/`](apps/syllabus/README.md).
-It has its own package manifest, lockfile, CLI, and isolated tests, with no
-imports from the Apps Script experiments. From the repository root:
+The standalone Node app lives in [`apps/syllabus/`](apps/syllabus/README.md).
+It has its own package manifest, lockfile, CLI, and tests, separate from the
+Apps Script project. From the repository root:
 
-```sh
-npm --prefix apps/syllabus ci
-npm --prefix apps/syllabus test
-npm --prefix apps/syllabus run cli -- --year 2026 --month 12 --gcloud-auth
-```
+- Install dependencies: `make env`
+- Run tests: `make cloudrun-test`
+- Retrieve a syllabus from the command line: `npm --prefix apps/syllabus run cli -- --year 2026 --month 12 --gcloud-auth`
+- Initialize Google Cloud resources: `make cloudrun-init`
+- Deploy the authenticated HTTP function: `make cloudrun-deploy`
 
-The existing Apps Script files stay at the root. `.claspignore` limits uploads
-to root script/HTML files and the Apps Script manifest, excluding the app and
-its nested node_modules. This app has not yet been deployed as a Cloud Run function.
+`make env` installs locked dependencies for both application components.
+`make cloudrun-init` enables APIs, provisions build/runtime service
+accounts, and prompts securely for missing SKA secrets in an existing project
+with billing enabled. `make cloudrun-deploy` tests and deploys the function using those
+identities, with `cloudrun-test` as a prerequisite. Neither testing nor deployment
+reinstalls local dependencies; run `make env` after changes
+to the app's package manifest or lockfile. Set `GCP_PROJECT`, `GCP_REGION`, `SYLLABUS_SERVICE`,
+`SYLLABUS_ACCOUNT_ID`, or `SYLLABUS_BUILD_ACCOUNT_ID` to override defaults. See
+the app README for initialization prerequisites and the HTTP interface.
 
-Deploy the authenticated HTTP function from source using `make deploy`. The
-target tests first, configures a dedicated runtime identity with access to the
-two SKA secrets, and deploys `ska-syllabus` to `get-ska-events/us-west1`. Set
-`GCP_PROJECT`, `GCP_REGION`, `SYLLABUS_SERVICE`, or `SYLLABUS_ACCOUNT_ID` to
-override defaults. See the app README for prerequisites and the HTTP interface.
+The existing Apps Script files stay at the repository root. `.claspignore`
+limits uploads to root script/HTML files and the Apps Script manifest, excluding
+the standalone app and its nested `node_modules`.

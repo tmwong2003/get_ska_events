@@ -46,3 +46,8 @@ lerna-debug.log*
 # Project-specific
 #
 .cache/
+
+# Local authentication experiments and their root-level build configuration
+/.dockerignore
+/.gcloudignore
+/experimental/

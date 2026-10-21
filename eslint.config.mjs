@@ -18,7 +18,7 @@ export default [
     },
   },
   {
-    files: ["experiments/**/*.mjs", "apps/**/*.mjs"],
+    files: ["experimental/**/*.mjs", "apps/**/*.mjs", "tests/**/*.mjs"],
     languageOptions: {
       sourceType: "module",
       globals: { document: "readonly", process: "readonly" },
