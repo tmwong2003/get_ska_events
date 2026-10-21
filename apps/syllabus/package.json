@@ -4,7 +4,7 @@
   "type": "module",
   "main": "function.mjs",
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "start": "functions-framework --target=syllabus",

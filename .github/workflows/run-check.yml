@@ -1,0 +1,40 @@
+# Keywords ordered by appearance in the GitHub Actions syntax documentation:
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+name: "Run a local code check"
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: "Make target to run: lint or test"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  run-check:
+    name: "Run ${{ inputs.target }}"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v7
+
+      - name: "Set up Node.js"
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: "Install dependencies"
+        run: make env
+
+      - name: "Run check"
+        run: |
+          case "$MAKE_TARGET" in
+            lint|test) make "$MAKE_TARGET" ;;
+            *) echo "Unsupported check target: $MAKE_TARGET" >&2; exit 1 ;;
+          esac
+        env:
+          MAKE_TARGET: ${{ inputs.target }}

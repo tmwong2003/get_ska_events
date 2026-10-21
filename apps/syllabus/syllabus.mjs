@@ -222,7 +222,7 @@ export async function getSyllabus(
     // Submit credentials with the login form's hidden fields and the secure
     // site's session cookies. The cookie jar retains any session cookie issued
     // or replaced during login. Authentication to news.ska.org happens next via
-    // the provider's handoff URL; its session cookies remain separate by host.
+    // the provider's handoff URL; the shared jar follows normal cookie scope.
     await request(loginUrl, {
       method: "POST",
       body: fields.toString(),
