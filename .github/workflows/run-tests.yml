@@ -1,6 +1,6 @@
 # Keywords ordered by appearance in the GitHub Actions syntax documentation:
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
-name: "Run NorCal SKA Events unit tests"
+name: "Run NorCal SKA Events tests"
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   run-tests:
-    name: "Run unit tests"
+    name: "Run tests"
     uses: ./.github/workflows/run-check.yml
     with:
       target: test

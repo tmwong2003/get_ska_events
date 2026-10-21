@@ -1,6 +1,6 @@
 # Keywords ordered by appearance in the GitHub Actions syntax documentation:
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
-name: "Run lint on NorCal SKA Events code"
+name: "Run NorCal SKA Events linter"
 
 on:
   pull_request:

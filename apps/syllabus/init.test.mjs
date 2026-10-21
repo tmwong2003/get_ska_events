@@ -28,15 +28,25 @@ gcloud() {
         version-error) echo "Version listing denied" >&2; return 1 ;;
         disabled) echo DISABLED ;;
         destroyed) echo DESTROYED ;;
-        new) ;;
+        new|whitespace) ;;
         *) echo ENABLED ;;
       esac ;;
-    "secrets versions add") cat >/dev/null ;;
+    "secrets versions add")
+      received=$(cat)
+      if [ "$SCENARIO" = whitespace ]; then
+        case "$4" in
+          ska-password)
+            if [ "$received" != "$EXPECTED_PASSWORD" ]; then
+              echo "Credential bytes changed" >&2
+              return 1
+            fi ;;
+        esac
+      fi ;;
   esac
 }
 `
 
-function initialize(scenario) {
+function initialize(scenario, password = "test-password") {
   const directory = mkdtempSync(join(tmpdir(), "ska-init-test-"))
   try {
     const environment = join(directory, "environment.sh")
@@ -51,9 +61,10 @@ function initialize(scenario) {
           BASH_ENV: environment,
           CALL_LOG: log,
           SCENARIO: scenario,
+          EXPECTED_PASSWORD: password,
         },
         encoding: "utf8",
-        input: "test-user\ntest-password\n",
+        input: `test-user\n${password}\n`,
         timeout: 10000,
       },
     )
@@ -99,6 +110,12 @@ test("initializer requires explicit login before provisioning", () => {
     result.calls,
     /auth login|services enable|create|versions add/,
   )
+})
+
+test("initializer preserves credential whitespace and backslashes", () => {
+  const result = initialize("whitespace", " \tpassword\\with\\slashes\t ")
+  assert.equal(result.status, 0, result.stderr)
+  assert.equal(result.calls.match(/secrets versions add /g)?.length, 2)
 })
 
 for (const state of ["disabled", "destroyed"]) {

@@ -1,5 +1,7 @@
 import js from "@eslint/js"
 
+// Order properties as they appear in ESLint's configuration object reference:
+// https://eslint.org/docs/latest/use/configure/configuration-files#configuration-objects
 export default [
   {
     ignores: ["node_modules/**"],

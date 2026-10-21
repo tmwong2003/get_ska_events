@@ -60,7 +60,7 @@ for secret in ska-username ska-password; do
     # and temporary files. Disable xtrace while handling credentials.
     set +x
     value=
-    read -r -s -p "Enter $secret (hidden): " value
+    IFS= read -r -s -p "Enter $secret (hidden): " value
     printf '\n' >&2
     if [ -z "$value" ]; then
       echo "$secret must not be empty." >&2

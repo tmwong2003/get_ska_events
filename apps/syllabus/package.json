@@ -1,11 +1,7 @@
 {
   "name": "ska-syllabus",
-  "private": true,
-  "type": "module",
   "main": "function.mjs",
-  "engines": {
-    "node": "22.x"
-  },
+  "type": "module",
   "scripts": {
     "start": "functions-framework --target=syllabus",
     "cli": "node cli.mjs",
@@ -16,5 +12,9 @@
     "cheerio": "^1.2.0",
     "fetch-cookie": "^3.2.0",
     "google-auth-library": "^11.3.1"
-  }
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "private": true
 }
