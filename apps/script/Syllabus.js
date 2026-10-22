@@ -100,3 +100,37 @@ function getSyllabus(year, month) {
   }
   return syllabus
 }
+
+/**
+ * Retrieve a month's syllabus and format its training rows as an HTML table.
+ * @param {number} year The calendar year, from 1996 through 2055.
+ * @param {number} month The calendar month, from 1 through 12.
+ * @returns {string} The syllabus formatted as an HTML table.
+ */
+function getSyllabusAsTable(year, month) {
+  const syllabus = getSyllabus(year, month)
+  const table = `<table border="1" cellpadding="5" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Training</th>
+      <th>Junior</th>
+      <th>Senior</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${syllabus.training
+      .map(
+        (row) => `
+    <tr>
+      <td>${row.training}</td>
+      <td>${row.junior}</td>
+      <td>${row.senior}</td>
+    </tr>
+    `,
+      )
+      .join("")}
+  </tbody>
+</table>
+`
+  return table
+}
