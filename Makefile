@@ -85,7 +85,8 @@ cloudrun-test:
 .PHONY: cloudrun-deploy
 cloudrun-deploy: export INVOKER_EMAIL := $(INVOKER_EMAIL)
 cloudrun-deploy:
-	@printf '%s\n' "$$INVOKER_EMAIL" | grep -Eq '^[^[:space:]@,]+@[^[:space:]@,]+\.[^[:space:]@,]+$$' || { \
+	@test "$$INVOKER_EMAIL" = "$$(printf '%s' "$$INVOKER_EMAIL" | tr -d '[:space:]')" && \
+		printf '%s\n' "$$INVOKER_EMAIL" | grep -Eq '^[^[:space:]@,]+@[^[:space:]@,]+\.[^[:space:]@,]+$$' || { \
 		echo "Provide INVOKER_EMAIL as a single Google account email address." >&2; \
 		exit 1; \
 	}
