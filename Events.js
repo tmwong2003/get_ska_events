@@ -1,17 +1,20 @@
-const NORCAL_CALENDAR_ID =
-  "054fnj32ov0fit62sam8ss7pcg@group.calendar.google.com"
-
 const DATE_FORMAT = "E d MMM yyyy"
 const TIME_FORMAT = "h:mma"
 
-const RECIPIENT = "tmw@tmwong.org"
-const SIGNATURE = `<p>
-  Regards,
-</p>
-<p>
-  Theodore Wong &lt;tmw@tmwong.org&gt;<br>
-  El Camino SKA Dojo
-</p>`
+/**
+ * Read required deployment configuration without defaulting to personal values.
+ * @param {string} name The Script Property name.
+ * @returns {string} The configured value, preserving HTML and whitespace.
+ */
+function getRequiredScriptProperty(name) {
+  const value = PropertiesService.getScriptProperties().getProperty(name)
+  if (value === null || value.trim() === "") {
+    throw Error(
+      `Set ${name} in Script Properties before running this function.`,
+    )
+  }
+  return value
+}
 
 /**
  * A calendar event class.
@@ -161,7 +164,7 @@ function draftMessageBodyByEvents(events) {
       .map(function (event) {
         return event.getAsHtml(true)
       })
-      .join("") + SIGNATURE
+      .join("") + getRequiredScriptProperty("SIGNATURE")
   )
 }
 
@@ -185,14 +188,16 @@ function draftMessageBodyByDates(events) {
     }
     output += e.getAsHtml()
   }
-  return output + SIGNATURE
+  return output + getRequiredScriptProperty("SIGNATURE")
 }
 
 /**
  * Send an e-mail announcing the current week's events.
  */
 function sendWeeklyEventsMessage() {
-  const calendar = CalendarApp.getOwnedCalendarById(NORCAL_CALENDAR_ID)
+  const calendar = CalendarApp.getOwnedCalendarById(
+    getRequiredScriptProperty("NORCAL_CALENDAR_ID"),
+  )
   const timezone = calendar.getTimeZone()
   const [start, end] = getCurrentWeek()
   const events = getEvents(calendar, start, end, timezone)
@@ -200,7 +205,7 @@ function sendWeeklyEventsMessage() {
   const htmlBody = draftMessageBodyByEvents(events)
   Logger.log("Drafted message:\n" + subject + "\n" + htmlBody)
   MailApp.sendEmail({
-    to: RECIPIENT,
+    to: getRequiredScriptProperty("RECIPIENT"),
     subject: subject,
     htmlBody: htmlBody,
   })
@@ -210,7 +215,9 @@ function sendWeeklyEventsMessage() {
  * Send an e-mail announcing the next month's events.
  */
 function sendMonthlyEventsMessage() {
-  const calendar = CalendarApp.getOwnedCalendarById(NORCAL_CALENDAR_ID)
+  const calendar = CalendarApp.getOwnedCalendarById(
+    getRequiredScriptProperty("NORCAL_CALENDAR_ID"),
+  )
   const timezone = calendar.getTimeZone()
   const [start, end] = getNextMonth()
   const events = getEvents(calendar, start, end, timezone)
@@ -224,7 +231,7 @@ function sendMonthlyEventsMessage() {
 ` + draftMessageBodyByDates(events)
   Logger.log("Drafted message:\n" + subject + "\n" + htmlBody)
   MailApp.sendEmail({
-    to: RECIPIENT,
+    to: getRequiredScriptProperty("RECIPIENT"),
     subject: subject,
     htmlBody: htmlBody,
   })
