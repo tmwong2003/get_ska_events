@@ -1,5 +1,7 @@
 PROJECT_NAME ?= Get NorCal SKA Events
 
+CLASP_ROOT_DIR ?= apps/script
+
 GCP_PROJECT ?= get-ska-events
 GCP_REGION ?= us-west1
 
@@ -38,14 +40,14 @@ lint:
 test: clasp-test cloudrun-test
 
 #
-# Apps Script project setup and synchronization
+# Apps Script project setup and deployment
 #
 
 # Run unit tests locally with Apps Script service substitutes.
 # Does not require Google authentication or an Apps Script project.
 .PHONY: clasp-test
 clasp-test:
-	node --test tests/apps-script.test.mjs
+	node --test tests/events.test.mjs tests/email.test.mjs tests/syllabus.test.mjs
 
 # Apps Script authentication, project creation, and source synchronization
 .PHONY: clasp-login
@@ -55,7 +57,7 @@ clasp-login:
 # Create a new Apps Script project and link this checkout.
 .PHONY: clasp-init
 clasp-init:
-	npx @google/clasp create --title "$(PROJECT_NAME)" --type standalone
+	npx @google/clasp create --title "$(PROJECT_NAME)" --type standalone --rootDir "$(CLASP_ROOT_DIR)"
 
 .PHONY: clasp-pull
 clasp-pull:

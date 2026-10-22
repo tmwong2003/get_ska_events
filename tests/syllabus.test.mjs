@@ -1,147 +1,12 @@
 import assert from "node:assert/strict"
 import { Buffer } from "node:buffer"
-import console from "node:console"
 import { readFileSync } from "node:fs"
 import test from "node:test"
 import { URL } from "node:url"
 import vm from "node:vm"
 
-process.env.TZ = "America/Los_Angeles"
-
-test("Apps Script runTests()", () => {
-  const failures = []
-  const context = vm.createContext({
-    PropertiesService: {
-      getScriptProperties: () => ({
-        getProperty: (name) =>
-          name === "NORCAL_CALENDAR_ID" ? "test-calendar" : null,
-      }),
-    },
-    CalendarApp: {
-      getOwnedCalendarById: (id) => {
-        assert.equal(id, "test-calendar")
-        return { getTimeZone: () => "America/Los_Angeles" }
-      },
-    },
-    Logger: {
-      log(message) {
-        console.log(message)
-        if (message.startsWith("WARNING: Test ")) failures.push(message)
-      },
-    },
-    Utilities: {
-      formatDate(date, timeZone, format) {
-        if (!["d", "d MMMM", "d MMMM yyyy"].includes(format)) {
-          throw new Error(`Unsupported test date format: ${format}`)
-        }
-        return new Intl.DateTimeFormat("en-GB", {
-          timeZone,
-          day: "numeric",
-          ...(format.includes("MMMM") ? { month: "long" } : {}),
-          ...(format.includes("yyyy") ? { year: "numeric" } : {}),
-        }).format(date)
-      },
-    },
-  })
-  for (const filename of ["Events.js", "Test.js"]) {
-    vm.runInContext(
-      readFileSync(new URL(`../${filename}`, import.meta.url), "utf8"),
-      context,
-      { filename },
-    )
-  }
-  vm.runInContext("runTests()", context)
-  assert.deepEqual(failures, [], "Apps Script tests reported failures")
-})
-
-const eventsSource = readFileSync(
-  new URL("../Events.js", import.meta.url),
-  "utf8",
-)
-
-function createEventsContext(properties) {
-  const messages = []
-  const context = vm.createContext({
-    PropertiesService: {
-      getScriptProperties: () => ({
-        getProperty: (name) => properties[name] ?? null,
-      }),
-    },
-    CalendarApp: {
-      getOwnedCalendarById(id) {
-        assert.equal(id, properties.NORCAL_CALENDAR_ID)
-        return { getTimeZone: () => "America/Los_Angeles" }
-      },
-    },
-    Logger: { log() {} },
-    MailApp: { sendEmail: (message) => messages.push(message) },
-    Utilities: { formatDate: () => "November 2026" },
-  })
-  vm.runInContext(eventsSource, context, { filename: "Events.js" })
-  vm.runInContext(
-    `getEvents = () => [{
-      date: "test-date",
-      getAsHtml: () => "<p>Test event</p>",
-    }]`,
-    context,
-  )
-  return { context, messages }
-}
-
-test("event emails use the configured recipient, calendar, and HTML signature", () => {
-  const properties = {
-    NORCAL_CALENDAR_ID: "example-calendar",
-    RECIPIENT: "recipient@example.org",
-    SIGNATURE: "<p>Regards,</p>\n<p>Example Dojo</p>\n",
-  }
-  const { context, messages } = createEventsContext(properties)
-  for (const expression of [
-    "sendWeeklyEventsMessage()",
-    "sendMonthlyEventsMessage()",
-  ]) {
-    vm.runInContext(expression, context)
-  }
-  assert.equal(messages.length, 2)
-  for (const message of messages) {
-    assert.equal(message.to, properties.RECIPIENT)
-    assert.ok(message.htmlBody.includes("<p>Test event</p>"))
-    assert.ok(message.htmlBody.endsWith(properties.SIGNATURE))
-  }
-})
-
-test("missing or blank event configuration prevents sending email", () => {
-  for (const name of ["NORCAL_CALENDAR_ID", "RECIPIENT", "SIGNATURE"]) {
-    for (const value of [null, "", " \n "]) {
-      for (const expression of [
-        "sendWeeklyEventsMessage()",
-        "sendMonthlyEventsMessage()",
-      ]) {
-        const { context, messages } = createEventsContext({
-          NORCAL_CALENDAR_ID: "example-calendar",
-          RECIPIENT: "recipient@example.org",
-          SIGNATURE: "<p>Example Dojo</p>",
-          [name]: value,
-        })
-        assert.throws(
-          () => vm.runInContext(expression, context),
-          new RegExp(`Set ${name} in Script Properties`),
-        )
-        assert.equal(messages.length, 0)
-      }
-    }
-  }
-})
-
-test("empty date-grouped drafts preserve the existing no-events output", () => {
-  const { context } = createEventsContext({})
-  assert.equal(
-    vm.runInContext("draftMessageBodyByDates([])", context),
-    "<p><strong>No events!</strong></p>",
-  )
-})
-
 const syllabusSource = readFileSync(
-  new URL("../Syllabus.js", import.meta.url),
+  new URL("../apps/script/Syllabus.js", import.meta.url),
   "utf8",
 )
 const expectedSyllabus = {
@@ -153,6 +18,7 @@ const expectedSyllabus = {
     senior: "Senior training",
   })),
 }
+const testIdentityToken = "test-id-token"
 
 test("the manual live syllabus test checks its result without logging content", () => {
   for (const valid of [true, false]) {
@@ -169,7 +35,7 @@ test("the manual live syllabus test checks its result without logging content", 
       Logger: { log: (message) => logs.push(message) },
     })
     vm.runInContext(
-      readFileSync(new URL("../Test.js", import.meta.url), "utf8"),
+      readFileSync(new URL("../apps/script/Test.js", import.meta.url), "utf8"),
       context,
     )
     if (valid) {
@@ -187,7 +53,7 @@ test("the manual live syllabus test checks its result without logging content", 
 
 function createSyllabusContext({
   serviceUrl = "https://ska-syllabus-example-uw.a.run.app",
-  token = "private-id-token",
+  token = testIdentityToken,
   status = 200,
   body = JSON.stringify(expectedSyllabus),
 } = {}) {
@@ -246,12 +112,30 @@ test("getSyllabus sends an authenticated GET and returns the syllabus", () => {
     )
     assert.deepEqual(JSON.parse(JSON.stringify(requests[0].options)), {
       method: "get",
-      headers: { Authorization: "Bearer private-id-token" },
+      headers: { Authorization: `Bearer ${testIdentityToken}` },
       followRedirects: false,
       muteHttpExceptions: true,
     })
     assert.deepEqual(logs, [])
   }
+})
+
+test("getSyllabusAsTable formats the syllabus as an HTML table", () => {
+  const { context, requests } = createSyllabusContext()
+  const table = vm.runInContext("getSyllabusAsTable(2026, 12)", context)
+
+  assert.equal(typeof table, "string")
+  assert.ok(table.includes("<th>Training</th>"))
+  assert.ok(table.includes("<th>Junior</th>"))
+  assert.ok(table.includes("<th>Senior</th>"))
+  for (const row of expectedSyllabus.training) {
+    assert.ok(
+      table.includes(
+        `<td>${row.training}</td>\n      <td>${row.junior}</td>\n      <td>${row.senior}</td>`,
+      ),
+    )
+  }
+  assert.equal(requests.length, 1)
 })
 
 test("getSyllabus rejects invalid inputs before requesting a token", () => {
@@ -416,7 +300,10 @@ test("logSyllabusAudience rejects a missing audience without logging claims", ()
 
 test("the Apps Script manifest declares syllabus authentication scopes", () => {
   const manifest = JSON.parse(
-    readFileSync(new URL("../appsscript.json", import.meta.url), "utf8"),
+    readFileSync(
+      new URL("../apps/script/appsscript.json", import.meta.url),
+      "utf8",
+    ),
   )
   for (const scope of [
     "openid",
