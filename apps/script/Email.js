@@ -76,7 +76,7 @@ function sendMonthlyEventsMessage() {
 ${syllabus}
 </p>
 ` + draftMessageBodyByDates(events)
-  Logger.log("Drafted message:\n" + subject + "\n" + htmlBody)
+  Logger.log("Drafted monthly message: " + subject)
   MailApp.sendEmail({
     to: getRequiredScriptProperty("RECIPIENT"),
     subject: subject,
