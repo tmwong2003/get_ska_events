@@ -36,6 +36,39 @@ function test_getCurrentWeekSubjectDifferentYear(timezone) {
   return expected == observed
 }
 
+/**
+ * Manually verify October 2026 retrieval from the Apps Script editor.
+ * Requires authorization, SYLLABUS_SERVICE_URL, and a private Cloud Run
+ * deployment configured with the script audience and the user's Invoker grant.
+ * Contacts SKA through the service; logs no syllabus content or tokens.
+ * Kept out of TESTS so runTests does not invoke the live service.
+ * @returns {boolean} True if the requested month and training rows match.
+ * @throws {Error} If retrieval fails or the returned syllabus is unexpected.
+ */
+function test_getSyllabus() {
+  const syllabus = getSyllabus(2026, 10)
+  if (
+    syllabus === null ||
+    syllabus.year !== 2026 ||
+    syllabus.month !== 10 ||
+    !Array.isArray(syllabus.training) ||
+    syllabus.training.length !== 3 ||
+    syllabus.training.some(
+      (row, index) =>
+        row === null ||
+        row.training !== ["KATA", "KIHON", "KUMITE"][index] ||
+        typeof row.junior !== "string" ||
+        typeof row.senior !== "string",
+    )
+  ) {
+    throw Error("Live syllabus test failed: unexpected October 2026 syllabus.")
+  }
+  Logger.log(
+    `Retrieved ${syllabus.year}-${syllabus.month}: ${syllabus.training.length} training categories`,
+  )
+  return true
+}
+
 const TESTS = [
   test_getCurrentWeekSubjectSameMonth,
   test_getCurrentWeekSubjectDifferentMonth,
@@ -43,10 +76,12 @@ const TESTS = [
 ]
 
 /**
- * Run all tests.
+ * Run all tests that do not require a live deployment.
  */
 function runTests() {
-  const calendar = CalendarApp.getOwnedCalendarById(NORCAL_CALENDAR_ID)
+  const calendar = CalendarApp.getOwnedCalendarById(
+    getRequiredScriptProperty("NORCAL_CALENDAR_ID"),
+  )
   const timezone = calendar.getTimeZone()
 
   for (const test of TESTS) {

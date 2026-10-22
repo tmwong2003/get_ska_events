@@ -16,31 +16,11 @@ node --version
 
 Run `make env` to install locked root and syllabus app dependencies, including the Apps Script `clasp` CLI, Prettier, and ESLint. Rerun it after changes to either the package manifest or lockfile.
 
-Install the Google Cloud CLI for Cloud Run initialization and deployment.
+Install the Google Cloud CLI for Cloud Run initialization and deployment. Also, complete the [Google Cloud prerequisites](GCP_PREREQUISITES.md) before initializing or deploying the syllabus service, which cover project billing, IAM permissions, and required APIs.
 
 In VS Code, install the recommended Prettier (`esbenp.prettier-vscode`) and ESLint (`dbaeumer.vscode-eslint`) extensions.
 
 Enable **Google Apps Script API** in your [Apps Script user settings](https://script.google.com/home/usersettings) before `make clasp-init` or synchronization. Enabling an API in a Cloud project does not replace this user setting.
-
-### Google Cloud prerequisites
-
-The following project, billing, and IAM requirements apply to both personal Google accounts and managed Workspace accounts. Ordinary Apps Script execution and time-driven triggers do not require Cloud billing.
-
-1. In [Google Cloud Console](https://console.cloud.google.com/), create or select a project and record its project ID. In **Billing**, link an active billing account. For the initializer's billing check, grant the initializing user **Billing Account Viewer** (`roles/billing.viewer`) on that billing account if they lack billing visibility; this account-level role also exposes billing information. See [Google's billing-status permissions](https://docs.cloud.google.com/billing/docs/how-to/verify-billing-enabled). Project creation and billing enrollment remain administrator tasks; `cloudrun-init` does neither.
-2. In **IAM & Admin > IAM**, confirm that the initializing user has the permissions below through existing roles or explicit grants. You do not need duplicate grants when existing roles already provide access. These bootstrap roles allow broad IAM and secret management; grant them only to the trusted operator and remove provisioning privileges when they no longer need to rerun initialization.
-
-   | Role                                                         | Purpose                                              |
-   | ------------------------------------------------------------ | ---------------------------------------------------- |
-   | Service Usage Admin (`roles/serviceusage.serviceUsageAdmin`) | Enable the required APIs                             |
-   | Service Account Admin (`roles/iam.serviceAccountAdmin`)      | Create and inspect runtime and build accounts        |
-   | Project IAM Admin (`roles/resourcemanager.projectIamAdmin`)  | Grant the build account its project role             |
-   | Secret Manager Admin (`roles/secretmanager.admin`)           | Create secrets and versions and grant runtime access |
-
-3. Grant the deploying user **Cloud Run Source Developer** (`roles/run.sourceDeveloper`) and **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) on the project. Grant **Cloud Run Admin** (`roles/run.admin`) for this target's service IAM configuration (`--no-allow-unauthenticated`). Grant **Service Account User** (`roles/iam.serviceAccountUser`) on both the runtime and build accounts so the deployer can act as them. Since these accounts do not exist before initialization, either grant that role at project scope initially or have an administrator grant it on the two accounts after `make cloudrun-init` and before deployment. Prefer account-level grants for ongoing deployment. See [Google's source-deployment IAM requirements](https://docs.cloud.google.com/run/docs/configuring/services/build-service-account).
-
-Continue with [initialization and deployment](#initialize-and-deploy); the initializer handles API enablement, service accounts, and secrets, so you do not need to pre-create those resources in the Console.
-
-Managed organizational accounts may also face service, OAuth, or organization-policy restrictions. Ask your administrator to review Google's [Apps Script service controls](https://support.google.com/a/answer/15100049), [OAuth app access controls](https://support.google.com/a/answer/7281227), and [organization policies](https://docs.cloud.google.com/resource-manager/docs/organization-policy/overview) if access fails despite the required permissions. Personal accounts need no Workspace administrator setup.
 
 ## Google Apps Script synchronization
 
@@ -58,7 +38,17 @@ Open the linked project in the [Apps Script dashboard](https://script.google.com
 
 ### Authorize and schedule email
 
-Review `NORCAL_CALENDAR_ID`, `RECIPIENT`, and `SIGNATURE` in `Events.js` before uploading or executing email functions. The account that runs the script must own the configured calendar because the application calls `getOwnedCalendarById`; read-only sharing does not meet that requirement.
+Before executing email functions, set these values in Apps Script **Project Settings > Script Properties**:
+
+| Property             | Value to supply                                           |
+| -------------------- | --------------------------------------------------------- |
+| `NORCAL_CALENDAR_ID` | Your Google Calendar ID                                   |
+| `RECIPIENT`          | The announcement recipient's email address                |
+| `SIGNATURE`          | Your HTML email signature, including any desired newlines |
+
+Missing or blank required values produce an explicit error when used; there are no personal defaults in the source. Script Properties are shared project configuration accessible to project editors, not a secret vault. `DATE_FORMAT` and `TIME_FORMAT` remain presentation constants in `Events.js`.
+
+The account that runs the script must own the configured calendar because the application calls `getOwnedCalendarById`; read-only sharing does not meet that requirement.
 
 Open the project in the Apps Script editor, run `runTests`, and complete the Google authorization prompts as the intended execution account. This checks real calendar access and Google's date formatting. Manually running `sendWeeklyEventsMessage` or `sendMonthlyEventsMessage` sends email immediately.
 
@@ -85,7 +75,9 @@ Cloud Run setup, testing, and deployment targets:
 - `cloudrun-login`: Log in to Google Cloud with the Google Cloud CLI
 - `cloudrun-init`: Provision the syllabus app's Google Cloud resources
 - `cloudrun-test`: Run the syllabus app's local tests without accessing Google Cloud
-- `cloudrun-deploy`: Deploy the syllabus HTTP function
+- `cloudrun-validate`: Retrieve the current month's syllabus from the deployed service using the CLI account
+- `cloudrun-deploy`: Deploy the syllabus HTTP function and grant `INVOKER_EMAIL` service-scoped Invoker access
+- `cloudrun-register-audience`: After deployment, register `AUDIENCE` and print the service URL to save in Script Properties
 
 The two workflows are separate: `clasp-push` does not deploy the Cloud Run function, and `cloudrun-deploy` does not upload Apps Script files.
 
@@ -115,7 +107,7 @@ Use `make lint` or `npm run lint` to check JavaScript files without modifying th
 
 ## Standalone syllabus app
 
-The standalone Node app in [`apps/syllabus/`](apps/syllabus/) reads SKA credentials from Secret Manager, logs in through TrustDriven, follows the SKA News authentication handoff, and returns a month's training syllabus as JSON. Each retrieval starts a fresh session. The app has its own package manifest, lockfile, CLI, and tests; it imports no Apps Script sources.
+The standalone Node app in [`apps/syllabus/`](apps/syllabus/) retrieves a month's training syllabus as JSON using credentials from Secret Manager and a fresh TrustDriven/SKA News session. It imports no Apps Script sources.
 
 ### Initialize and deploy
 
@@ -125,14 +117,12 @@ Complete the [prerequisites](#prerequisites), then run these commands from the r
 make cloudrun-login
 make cloudrun-init
 make cloudrun-test
-make cloudrun-deploy
+make cloudrun-deploy INVOKER_EMAIL='YOUR_GOOGLE_ACCOUNT_EMAIL'
 ```
 
-`cloudrun-login` configures Google Cloud CLI credentials, not Application Default Credentials. `cloudrun-init` requires an active account, enables IAM, Cloud Run, Cloud Build, Artifact Registry, Secret Manager, and Logging APIs, creates separate runtime and build service accounts, and grants the build account `roles/run.builder`. It grants the runtime account access to only `ska-username` and `ska-password`.
+`cloudrun-init` enables the provisioning APIs, creates separate build and runtime service accounts, grants build permissions, and gives the runtime account access to `ska-username` and `ska-password`. It prompts securely for missing secret values, reuses enabled latest versions, and supports reruns after partial failure.
 
-The initializer creates missing secrets with automatic replication and prompts for a new value when the latest version is missing, disabled, or destroyed. It sends values to Secret Manager through stdin without storing them in local files, command arguments, or shell history. It reuses enabled latest versions, retries temporary service-account visibility errors, and supports reruns after partial failure.
-
-`cloudrun-deploy` submits a source build using Google's Node 22 buildpack and the dedicated build and runtime accounts. Google stores the image in Artifact Registry; you need no Dockerfile or local Docker installation. The target does not install dependencies, run initialization, or run tests. The sequence above recommends testing first without making it a deployment prerequisite.
+`cloudrun-deploy` requires a single `INVOKER_EMAIL`, validates it before deploying, builds with Google's Node 22 buildpack, and grants that user **Cloud Run Invoker** on the deployed service. The image is stored in Artifact Registry; no local Docker installation is needed. The target does not run initialization or tests. If the IAM grant fails, the deployment remains but Make reports failure; correct the error and retry. Existing Invoker grants are preserved.
 
 Defaults are project `get-ska-events`, region `us-west1`, service `ska-syllabus`, runtime account ID `ska-syllabus`, and build account ID `ska-syllabus-build`. Override `GCP_PROJECT`, `GCP_REGION`, `SYLLABUS_SERVICE`, `SYLLABUS_ACCOUNT_ID`, or `SYLLABUS_BUILD_ACCOUNT_ID` as Make variables. Use consistent overrides for initialization and deployment. Allow several minutes for IAM changes to propagate before retrying a deployment.
 
@@ -146,7 +136,7 @@ Retrieve a syllabus from the repository root:
 npm --prefix apps/syllabus run cli -- --year 2026 --month 12 --gcloud-auth
 ```
 
-`--gcloud-auth` uses the account selected by `make cloudrun-login`. That account needs secret access to `ska-username` and `ska-password`; deployment permissions alone do not necessarily grant access to secret values. Use `--project OTHER_PROJECT` to select another secret project. The CLI prints syllabus JSON on success and a sanitized error on failure.
+`--gcloud-auth` uses the account selected by `make cloudrun-login`. Local retrieval requires that account to have access to both SKA secrets; initialization grants this access only to the deployed runtime account. Use `--project OTHER_PROJECT` to select another secret project.
 
 Without `--gcloud-auth`, the CLI uses Application Default Credentials. For local use, configure them separately with `gcloud auth application-default login`. The deployed function uses its runtime service account instead.
 
@@ -170,23 +160,36 @@ Provide a year from 1996 through 2055 and a month from 1 through 12. Successful 
 
 The handler returns HTTP 400 for invalid parameters, 405 for unsupported methods, and 502 for retrieval failures. It disables response caching and omits upstream error details that could contain credentials or authentication tokens.
 
-### Validate a private deployment
+### Validate a deployment
 
-In Google Cloud Console, open **Cloud Run > ska-syllabus > Permissions** and grant **Cloud Run Invoker** (`roles/run.invoker`) to a designated human tester if their existing roles do not allow invocation. Select the actual service name if you override `SYLLABUS_SERVICE`. Do not grant access to `allUsers`.
-
-After `make cloudrun-login`, run:
+After `make cloudrun-login`, use the account granted Invoker access during deployment (or another account granted access separately in Cloud Run Permissions):
 
 ```sh
-PROJECT=get-ska-events
-REGION=us-west1
-SERVICE=ska-syllabus
-URL=$(gcloud run services describe "$SERVICE" --project="$PROJECT" --region="$REGION" --format='value(status.url)')
-curl --fail-with-body \
-  -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-  "$URL/?year=2026&month=12"
+make cloudrun-validate
 ```
 
-Use the same project, region, and service values as deployment. This live check reads SKA secrets and authenticates to SKA. A 403 indicates an invocation/access problem; see [HTTP interface](#http-interface) for application responses. The user identity token supports this manual test, not unattended Apps Script authentication.
+The target uses the deployment's project, region, and service overrides and prints the current month's syllabus JSON (using the local CLI date). It contacts real SKA services and exits with an error on HTTP failure. Treat its output as member-only content. HTTP 401/403 indicates an authentication/access problem; HTTP 502 indicates an upstream retrieval failure.
+
+### Integrate with Apps Script
+
+`Syllabus.js` provides `getSyllabus(year, month)`, returning the parsed syllabus JSON. It uses `ScriptApp.getIdentityToken()` for the executing user, with no stored tokens, service-account keys, or SKA credentials in Apps Script. The Cloud Run service remains private.
+
+Configure the linked Apps Script project and deployed service once:
+
+1. Run `make clasp-push`. The manifest includes `openid`, `userinfo.email`, and `script.external_request` scopes in addition to the existing calendar and email scopes.
+2. In the Apps Script editor, run `logSyllabusAudience` and complete authorization as the intended execution account. Copy the audience value from the execution log. This helper decodes the token locally and logs only its `aud` claim, never the token itself.
+3. After deploying the Cloud Run service, register that exact audience:
+
+   ```sh
+   make cloudrun-register-audience AUDIENCE='PASTE_AUDIENCE_FROM_APPS_SCRIPT'
+   ```
+
+   Use the same project, region, and service overrides as deployment. The target registers the audience and prints the URL without changing IAM permissions. It is safe to rerun and requires permission to update the service. The Apps Script execution account (the trigger creator for scheduled runs) must have Invoker access: use its email as `INVOKER_EMAIL` during deployment, or grant it access separately in Cloud Run Permissions if it differs from the CLI tester.
+
+4. In Apps Script **Project Settings > Script Properties**, set `SYLLABUS_SERVICE_URL` to the HTTPS `run.app` URL printed above, without query parameters or a path. An optional trailing slash is accepted.
+5. Run `test_getSyllabus` in the Apps Script editor to validate live retrieval, or call `getSyllabus(year, month)` from your script.
+
+Repeat audience registration if the script's OAuth client changes. For HTTP 401/403, check the registered audience and executing account's Invoker access. The live test checks authorization and retrieval without logging syllabus content or tokens.
 
 ### Apps Script separation
 
