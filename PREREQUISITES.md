@@ -1,7 +1,7 @@
 Prerequisites for the Google Cloud Run syllabus service
 ========================================================
 
-The Get NorCal SKA Events application has a number of Google Cloud Platform (GCP) prerequisites for deploying the Google Cloud Run syllabus service, including configuring a Google Cloud project, enabling billing, granting IAM permissions, and enabling APIs described below. These prerequisites apply to the Google Cloud project used to deploy the syllabus service, whether you access it with a personal Google Account or a Google Workspace account managed by an organization. They do not apply to ordinary Apps Script execution or time-driven triggers.
+The Get NorCal SKA Events application has a number of Google Cloud prerequisites for deploying the Google Cloud Run syllabus service, including configuring a Google Cloud project, enabling billing, granting IAM permissions, and enabling APIs described below. These prerequisites apply to the Google Cloud project used to deploy the syllabus service, whether you access it with a personal Google Account or a Google Workspace account managed by an organization. They do not apply to ordinary Apps Script execution or time-driven triggers.
 
 In this guide, an unqualified account means a Google Account; we identify service accounts, billing accounts, and SKA accounts explicitly.
 
