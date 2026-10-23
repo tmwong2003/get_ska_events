@@ -1,7 +1,7 @@
 Get NorCal SKA Events
 =====================
 
-**Get NorCal SKA Events** is an application that generates and sends weekly and monthly announcements of upcoming events in the NorCal SKA region. The application comprises two parts: an Apps Script [script](apps/script/) that parses events from the NorCal SKA Google Calendar, and a Google Cloud Run [service app](apps/syllabus/) that retrieves the monthly training syllabus from the SKA News website.
+**Get NorCal SKA Events** is an application that generates and sends weekly and monthly announcements of upcoming events in the NorCal SKA region. The application comprises two parts: an Apps Script [script](apps/script/) that parses events from the NorCal SKA Google Calendar, and a Google Cloud Run [service](apps/syllabus/) that retrieves the monthly training syllabus from the SKA News website.
 
 The application requires login credentials (`ska-username` and `ska-password`) for a current SKA member's account to access the syllabus on the protected SKA News website, and stores these SKA account credentials in Google Cloud Secret Manager. For privacy reasons, the application does not retain or otherwise log the syllabus.
 
@@ -23,20 +23,20 @@ Apps Script targets:
 - `clasp-test`: Run the Apps Script unit tests locally
 - `clasp-push` / `clasp-pull`: Synchronize sources in `apps/script/`
 
-Cloud Run targets:
+Cloud Run syllabus service targets:
 
-- `cloudrun-login`: Log in to Google Cloud with the Google Cloud CLI
-- `cloudrun-init`: Provision the syllabus app's Google Cloud resources
-- `cloudrun-test`: Run syllabus app unit tests without accessing Google Cloud
-- `cloudrun-deploy`: Deploy the private syllabus endpoint and grant `INVOKER_EMAIL` Cloud Run Invoker access
-- `cloudrun-validate`: Retrieve the current month's syllabus from the deployed service
-- `cloudrun-register-audience`: Register an Apps Script audience and print the service URL
+- `cloudrun-login`: Log in with the Google Cloud CLI
+- `cloudrun-init`: Provision the Google Cloud resources required by the service
+- `cloudrun-test`: Run service unit tests without accessing Google Cloud
+- `cloudrun-deploy`: Deploy the private service endpoint and grant `INVOKER_EMAIL` Cloud Run Invoker access
+- `cloudrun-validate`: Retrieve the syllabus for the current month from the deployed service
+- `cloudrun-register-audience`: Register an Apps Script audience and print the service endpoint URL
 
 Note that Apps Script synchronization and Cloud Run deployment are separate: `clasp-push` does not deploy Cloud Run, and `cloudrun-deploy` does not upload Apps Script files.
 
 ## Prerequisite configuration
 
-Configure your local and GCP environment before starting development as follows:
+Configure your local environment and Google Cloud project before starting development as follows:
 
 1. Install Node.js v22 with a Node version manager such as `fnm` or `nvm`; we require v22 for compatibility with the Cloud Run runtime. For example, with `fnm`:
 
@@ -48,7 +48,7 @@ node --version
 ```
 
 1. Install locked script and syllabus service dependencies, including the Apps Script `clasp` CLI, Prettier, and ESLint, with `make env`.
-1. Install the Google Cloud CLI for Cloud Run initialization and deployment. Also, complete the [Google Cloud prerequisites](PREREQUISITES.md) to configure project billing, IAM permissions, and required GCP APIs before initializing or deploying the syllabus service.
+1. Install the Google Cloud CLI for Cloud Run initialization and deployment. Also, complete the [Google Cloud prerequisites](PREREQUISITES.md) to configure project billing, IAM permissions, and required Google Cloud APIs before initializing or deploying the syllabus service.
 1. Enable **Google Apps Script API** in your [Apps Script user settings](https://script.google.com/home/usersettings) before `make clasp-init` or synchronization. Enabling the API in a Google Cloud project does not replace this user setting.
 1. If using VS Code, install the recommended Prettier (`esbenp.prettier-vscode`) and ESLint (`dbaeumer.vscode-eslint`) extensions.
 
@@ -56,11 +56,11 @@ node --version
 
 ### Tests
 
-Run both the script and syllabus service unit test suites locally with `make test` from the repository root. Neither suite needs Google authentication or GCP cloud infrastructure to run. Test failures, including logged Apps Script failures and exceptions, cause a nonzero exit status. Use `make clasp-test` or `make cloudrun-test` to run either suite independently.
+Run both the script and syllabus service unit test suites locally with `make test` from the repository root. Neither suite needs Google authentication or Google Cloud infrastructure to run. Test failures, including logged Apps Script failures and exceptions, cause a nonzero exit status. Use `make clasp-test` or `make cloudrun-test` to run either suite independently.
 
 The script test harness executes `runTests()` from `apps/script/Test.js` in a shared Node VM context using the original sources. The harness fixes the local and calendar timezones to `America/Los_Angeles` and substitutes `CalendarApp`, `Logger`, and the three `Utilities.formatDate` formats the tests use. The harness does not emulate the full Apps Script runtime; refer to [E-mail authorization and scheduling](#e-mail-authorization-and-scheduling-configuration) to check real service behavior.
 
-The syllabus service test harness uses synthetic HTTP responses and injected providers rather than live services, while the associated GCP configuration initializer test harness simulates the Google Cloud CLI.
+The syllabus service test harness uses synthetic HTTP responses and injected providers rather than live services, while the associated Google Cloud configuration initializer test harness simulates the Google Cloud CLI.
 
 ### Formatting
 
@@ -72,9 +72,7 @@ If using VS Code, the IDE selects Prettier as the default formatter and uses the
 
 Check JavaScript files without modifying them with `make lint` or `npm run lint`.
 
-## Deployment
-
-### Google Apps Script deployment
+## Google Apps Script deployment
 
 Create and link a standalone Apps Script project once from the repository root as follows before deploying the script for the first time:
 
@@ -92,7 +90,7 @@ git restore apps/script/appsscript.json
 
 Once you have created a project, upload the script sources with `make clasp-push` and open the linked project in the [Apps Script dashboard](https://script.google.com/home) to confirm a successful upload.
 
-#### E-mail authorization and scheduling configuration
+### E-mail authorization and scheduling configuration
 
 Set the following values in the Apps Script project **Project Settings > Script Properties** to enable e-mail sending. Missing or blank required values produce an explicit error when used, as the script does not provide any defaults.
 
@@ -112,9 +110,9 @@ In the event of a script failure, review the **Executions** screen in the editor
 
 † The account that runs the script must own the configured calendar because the script calls `getOwnedCalendarById`; `getOwnedCalendarById` cannot access a calendar shared from another account.
 
-### Cloud Run syllabus service deployment
+## Cloud Run syllabus service deployment
 
-Initialize the GCP project and deploy the syllabus service from the repository root as follows†:
+Initialize the Google Cloud project and deploy the syllabus service from the repository root as follows†:
 
 ```sh
 # Test once more before initialization and deployment
@@ -125,7 +123,7 @@ make cloudrun-deploy INVOKER_EMAIL='YOUR_GOOGLE_ACCOUNT_EMAIL'
 ```
 
 - `cloudrun-login` authenticates the CLI account used by subsequent `gcloud` commands. This account runs initialization and deployment; `INVOKER_EMAIL` names the Invoker account, which may differ from it.
-- `cloudrun-init` enables the provisioning APIs, creates separate build and runtime service accounts, grants build permissions, and gives the runtime service account access to the SKA account credentials stored in the `ska-username` and `ska-password` Google Cloud Secret Manager secrets. It prompts securely for missing secret values, reuses enabled latest versions, and supports reruns after partial failure.
+- `cloudrun-init` enables the provisioning APIs, creates separate build and runtime service accounts, grants build permissions, and gives the runtime service account access to the SKA account credentials stored in the `ska-username` and `ska-password` Secret Manager secrets. It prompts securely for missing secret values, reuses enabled latest versions, and supports reruns after partial failure.
 - `cloudrun-deploy` deploys the service from source. It:
   - Accepts and validates a single `INVOKER_EMAIL`.
   - Builds the service image with the Cloud Run Node.js 22 buildpack and stores it in Artifact Registry. No local Docker installation is needed.
@@ -139,7 +137,7 @@ The deployment requires authenticated invocation and configures zero minimum ins
 
 † Unlike the steps in Google Apps Script deployment, `cloudrun-init` is idempotent. You may safely rerun it with the same configuration values without disturbing an existing deployment. `cloudrun-deploy` deploys the current source and may create a new revision.
 
-#### Connect Apps Script to Cloud Run
+### Connect Apps Script to Cloud Run
 
 The script `apps/script/Syllabus.js` provides the `getSyllabus(year, month)` API, which returns parsed training syllabus JSON. It uses `ScriptApp.getIdentityToken()` to retrieve an identity token for the executing user, with no stored tokens, service-account keys, or SKA credentials retained in Apps Script.
 
@@ -153,21 +151,35 @@ Connect the Apps Script project to a deployed syllabus service as follows:
 
 Repeat audience registration if you change the script's OAuth client. For HTTP 401/403 errors, check that you registered the correct audience and granted the executing account Invoker access.
 
-#### Validate the deployment
+### Validate the deployment
 
 Validate a deployment with `make cloudrun-validate` while authenticated as the Invoker account (or another account granted Invoker access separately in Cloud Run Permissions). The `cloudrun-validate` target retrieves the syllabus for the current month (as determined by the timezone setting in the environment where the CLI runs) from the deployed service and prints syllabus JSON; treat this output as private member-only content.
 
 If an HTTP request fails, validation will fail and report the HTTP status code. Common responses include:
 
 - An HTTP 401 or 403 response indicates an authentication or access problem.
-- An HTTP 502 response indicates a retrieval failure, for example, from Secrets Manager or further upstream.
+- An HTTP 502 response indicates a retrieval failure, for example, from Secret Manager or further upstream.
 
 To validate a nondefault service, set `GCP_PROJECT`, `GCP_REGION`, or `SYLLABUS_SERVICE`.
 
-#### Local live retrieval
+## Local syllabus service execution
 
-To retrieve a syllabus locally, configure Application Default Credentials (ADC) with `gcloud auth application-default login` and then run `npm --prefix apps/syllabus run cli -- --year 2026 --month 12` from the repository root. `npm ... run cli ...` retrieves credentials from Secret Manager, contacts live SKA services, and prints syllabus JSON; treat the output as member-only content.
+Execute the syllabus service locally from the repository root as follows to retrieve a syllabus:
 
-The ADC identity must have permission to access both secrets in the selected Google Cloud project. `gcloud auth application-default login` configures credentials but does not grant Secret Manager permissions by itself. The ADC identity needs its own grant or inherited project-level access; `cloudrun-init` grants access only to the deployed runtime service account. The CLI uses project `get-ska-events` by default to obtain `ska-username` and `ska-password` values; pass `--project PROJECT` to select another project from which to obtain values.
+```sh
+gcloud auth application-default login
+make cloudrun-login
+make cloudrun-init
+npm --prefix apps/syllabus run cli -- --year 2026 --month 12
+```
+
+- `gcloud auth application-default login` configures Application Default Credentials (ADC).
+- `make cloudrun-login` as described in [Cloud Run syllabus service deployment](#cloud-run-syllabus-service-deployment).
+- `make cloudrun-init` as described in [Cloud Run syllabus service deployment](#cloud-run-syllabus-service-deployment).
+- `npm ... run cli ...` retrieves credentials from Secret Manager, contacts live SKA services, and prints syllabus JSON; treat the output as member-only content.
+
+You can run the CLI without deploying Cloud Run or connecting Apps Script. The CLI requires ADC credentials whose identity can read the SKA account secrets in Secret Manager, plus network access to Secret Manager and SKA News.
+
+ADC credentials are separate from the Google Cloud CLI credentials configured by `make cloudrun-login`; both can use the same Google Account or different accounts. The ADC identity must have permission to access both secrets in the selected Google Cloud project. `gcloud auth application-default login` configures ADC credentials but does not grant Secret Manager permissions. `cloudrun-init` grants access only to the deployed runtime service account, so grant the ADC identity access separately or ensure it inherits access through project-level IAM. The CLI uses project `get-ska-events` by default to obtain `ska-username` and `ska-password` values; pass `--project PROJECT` to select another project from which to obtain values.
 
 If an HTTP request fails, the CLI prints a sanitized error identifying the retrieval stage and exits with a nonzero status. It does not report the HTTP status code.
